@@ -60,7 +60,7 @@ Font       Kanit (Google Fonts)
 ### 1. ติดตั้ง Dependencies
 
 ```bash
-cd CLI
+cd school-management-system
 npm install
 ```
 
