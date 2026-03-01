@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 | ระบบบริหารจัดการโรงเรียน</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="font-kanit min-h-screen bg-slate-50 flex items-center justify-center p-4">
+  <div class="text-center max-w-sm">
+    <div class="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 rounded-2xl mb-6">
+      <i class="fa-solid fa-map text-indigo-500 text-3xl"></i>
+    </div>
+    <h1 class="text-8xl font-bold text-indigo-600 leading-none mb-2">404</h1>
+    <h2 class="text-xl font-semibold text-slate-800 mb-2">ไม่พบหน้าที่ต้องการ</h2>
+    <p class="text-slate-500 text-sm mb-8">ขอโทษครับ ไม่พบหน้าที่คุณกำลังมองหา อาจถูกย้ายหรือลบออกไปแล้ว</p>
+    <a
+      href="/dashboard"
+      class="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition"
+    >
+      <i class="fa-solid fa-house"></i>กลับหน้าหลัก
+    </a>
+  </div>
+</body>
+</html>

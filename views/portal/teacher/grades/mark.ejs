@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Teacher Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+  <style>
+    /* Minimal score input — bottom border only */
+    .score-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1.5px solid #e5e7eb;
+      outline: none;
+      padding: 4px 2px;
+      font-size: 13px;
+      font-family: 'Kanit', sans-serif;
+      color: #111827;
+      text-align: center;
+      transition: border-color 0.15s ease;
+    }
+    .score-input:focus {
+      border-bottom-color: #111827;
+    }
+    .score-input::placeholder {
+      color: #d1d5db;
+    }
+  </style>
+</head>
+<body class="font-kanit bg-gray-50">
+
+  <% const activePage = 'grades'; %>
+  <%- include('../partials/sidebar', { activePage }) %>
+
+  <div class="ml-16 flex flex-col h-screen overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200/60 px-8 py-4 flex items-center gap-3 flex-shrink-0">
+      <a href="/teacher/grades" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500">
+        <%- hi('arrow-left', 'h-4 w-4') %>
+      </a>
+      <div class="min-w-0">
+        <h1 class="text-sm font-semibold text-slate-800 truncate">
+          บันทึกคะแนน — <%= subject.subject_name %>
+        </h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">
+          <%= subject.subject_id %> · ม.<%= subject.grade_level %> · เทอม <%= semester %>/<%= year %>
+        </p>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8">
+      <div class="max-w-4xl mx-auto">
+
+        <!-- Flash -->
+        <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+          <div class="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 flex items-center gap-2">
+            <%- hi('check-circle', 'h-4 w-4 flex-shrink-0') %><span><%= success_msg[0] %></span>
+          </div>
+        <% } %>
+        <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+          <div class="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center gap-2">
+            <%- hi('exclamation-circle', 'h-4 w-4 flex-shrink-0') %><span><%= error_msg[0] %></span>
+          </div>
+        <% } %>
+
+        <% if (students.length === 0) { %>
+
+          <div class="bg-white border border-slate-200/60 rounded-xl py-20 flex flex-col items-center justify-center text-center">
+            <div class="w-14 h-14 bg-gray-50 border border-gray-200 rounded-2xl flex items-center justify-center mb-4">
+              <%- hi('user-group', 'h-6 w-6 text-gray-300') %>
+            </div>
+            <p class="text-sm font-semibold text-gray-600">ไม่พบนักเรียนในห้องนี้</p>
+            <p class="text-xs text-gray-400 mt-1">ยังไม่มีนักเรียนที่ผูกกับห้องเรียนของวิชานี้</p>
+          </div>
+
+        <% } else { %>
+
+          <!-- Info bar -->
+          <div class="mb-5 bg-white border border-slate-200/60 rounded-xl px-5 py-3.5 flex flex-wrap items-center gap-5">
+            <div class="flex items-center gap-2">
+              <%- hi('user-group', 'h-4 w-4 text-gray-400') %>
+              <span class="text-sm font-medium text-gray-700"><%= students.length %> คน</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-gray-400">
+              <%- hi('information-circle', 'h-3.5 w-3.5 text-gray-300') %>
+              <span>เก็บ <strong class="text-gray-600">30</strong> · กลางภาค <strong class="text-gray-600">30</strong> · ปลายภาค <strong class="text-gray-600">40</strong> · รวม <strong class="text-gray-600">100</strong></span>
+            </div>
+            <!-- Summary badges (live update) -->
+            <div class="ml-auto flex items-center gap-2 flex-wrap" id="gradeSummary"></div>
+          </div>
+
+          <!-- Grade Form -->
+          <form method="POST" action="/teacher/grades/mark" id="gradeForm">
+            <input type="hidden" name="subject_id" value="<%= subject.subject_id %>">
+            <input type="hidden" name="semester"   value="<%= semester %>">
+            <input type="hidden" name="year"       value="<%= year %>">
+
+            <div class="bg-white border border-slate-200/60 rounded-xl overflow-hidden">
+
+              <!-- Table Header -->
+              <div class="grid grid-cols-[2.5rem_1fr_80px_80px_80px_70px_60px] gap-x-3 items-center
+                          px-6 py-2.5 border-b border-gray-100 bg-gray-50">
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">#</span>
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">นักเรียน</span>
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">เก็บ<br><span class="font-normal normal-case">/30</span></span>
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">กลางภาค<br><span class="font-normal normal-case">/30</span></span>
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">ปลายภาค<br><span class="font-normal normal-case">/40</span></span>
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">รวม</span>
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-center">เกรด</span>
+              </div>
+
+              <!-- Student Rows -->
+              <div class="divide-y divide-gray-100">
+                <% students.forEach((student, idx) => { %>
+                  <% const g = gradeMap[student.student_id] || {}; %>
+                  <div class="grid grid-cols-[2.5rem_1fr_80px_80px_80px_70px_60px] gap-x-3 items-center px-6 py-3">
+
+                    <!-- # -->
+                    <span class="text-xs text-gray-400"><%= idx + 1 %></span>
+
+                    <!-- Name -->
+                    <div class="min-w-0">
+                      <p class="text-sm font-medium text-gray-800 truncate">
+                        <%= student.first_name %> <%= student.last_name %>
+                      </p>
+                      <p class="text-[10px] text-gray-400 font-mono"><%= student.room_name || '—' %></p>
+                    </div>
+
+                    <!-- คะแนนเก็บ -->
+                    <div>
+                      <input type="number" min="0" max="30" placeholder="0"
+                        name="grades[<%= student.student_id %>][continuous]"
+                        value="<%= g.score_continuous != null ? g.score_continuous : '' %>"
+                        class="score-input"
+                        oninput="recalcRow(this, <%= student.student_id %>)">
+                    </div>
+
+                    <!-- กลางภาค -->
+                    <div>
+                      <input type="number" min="0" max="30" placeholder="0"
+                        name="grades[<%= student.student_id %>][midterm]"
+                        value="<%= g.score_midterm != null ? g.score_midterm : '' %>"
+                        class="score-input"
+                        oninput="recalcRow(this, <%= student.student_id %>)">
+                    </div>
+
+                    <!-- ปลายภาค -->
+                    <div>
+                      <input type="number" min="0" max="40" placeholder="0"
+                        name="grades[<%= student.student_id %>][final]"
+                        value="<%= g.score_final != null ? g.score_final : '' %>"
+                        class="score-input"
+                        oninput="recalcRow(this, <%= student.student_id %>)">
+                    </div>
+
+                    <!-- รวม -->
+                    <div class="text-center">
+                      <span id="total-<%= student.student_id %>"
+                        class="text-sm font-semibold text-gray-800">
+                        <%= g.grade != null ? g.grade : '—' %>
+                      </span>
+                    </div>
+
+                    <!-- เกรด -->
+                    <div class="text-center">
+                      <span id="letter-<%= student.student_id %>"
+                        class="text-xs font-bold px-2 py-0.5 rounded-md <%= g.letter_grade ? 'bg-gray-100 text-gray-700' : 'text-gray-300' %>">
+                        <%= g.letter_grade || '—' %>
+                      </span>
+                    </div>
+
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-5 flex items-center justify-between gap-4">
+              <a href="/teacher/grades"
+                 class="text-sm text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-1.5">
+                <%- hi('arrow-left', 'h-3.5 w-3.5') %>กลับ
+              </a>
+              <button type="submit"
+                class="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-700
+                       text-white text-sm font-medium rounded-lg transition-colors">
+                <%- hi('check-circle', 'h-4 w-4') %>
+                บันทึกคะแนน
+              </button>
+            </div>
+          </form>
+
+        <% } %>
+
+      </div><!-- /max-w-4xl -->
+    </main>
+  </div>
+
+  <script>
+    function calcLetter(total) {
+      if (total >= 80) return { text: 'A',   cls: 'bg-emerald-100 text-emerald-700' };
+      if (total >= 75) return { text: 'B+',  cls: 'bg-blue-100 text-blue-700' };
+      if (total >= 70) return { text: 'B',   cls: 'bg-blue-100 text-blue-700' };
+      if (total >= 65) return { text: 'C+',  cls: 'bg-yellow-100 text-yellow-700' };
+      if (total >= 60) return { text: 'C',   cls: 'bg-yellow-100 text-yellow-700' };
+      if (total >= 55) return { text: 'D+',  cls: 'bg-orange-100 text-orange-700' };
+      if (total >= 50) return { text: 'D',   cls: 'bg-orange-100 text-orange-700' };
+      return                  { text: 'F',   cls: 'bg-red-100 text-red-600' };
+    }
+
+    function recalcRow(input, studentId) {
+      const row = input.closest('.grid');
+      const inputs = row.querySelectorAll('input[type="number"]');
+      const vals = Array.from(inputs).map(i => Math.max(0, parseInt(i.value) || 0));
+      const total = vals.reduce((a, b) => a + b, 0);
+
+      const totalEl  = document.getElementById('total-'  + studentId);
+      const letterEl = document.getElementById('letter-' + studentId);
+
+      if (total > 0) {
+        const { text, cls } = calcLetter(total);
+        totalEl.textContent  = total;
+        letterEl.textContent = text;
+        letterEl.className   = 'text-xs font-bold px-2 py-0.5 rounded-md ' + cls;
+      } else {
+        totalEl.textContent  = '—';
+        letterEl.textContent = '—';
+        letterEl.className   = 'text-xs font-bold px-2 py-0.5 rounded-md text-gray-300';
+      }
+
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const counts = { A:0, 'B+':0, B:0, 'C+':0, C:0, 'D+':0, D:0, F:0 };
+      document.querySelectorAll('[id^="letter-"]').forEach(el => {
+        const t = el.textContent.trim();
+        if (counts[t] !== undefined) counts[t]++;
+      });
+
+      const summaryEl = document.getElementById('gradeSummary');
+      if (!summaryEl) return;
+      const colors = {
+        A:'bg-emerald-100 text-emerald-700', 'B+':'bg-blue-100 text-blue-700',
+        B:'bg-blue-100 text-blue-700', 'C+':'bg-yellow-100 text-yellow-700',
+        C:'bg-yellow-100 text-yellow-700', 'D+':'bg-orange-100 text-orange-700',
+        D:'bg-orange-100 text-orange-700', F:'bg-red-100 text-red-600'
+      };
+      summaryEl.innerHTML = Object.entries(counts)
+        .filter(([, v]) => v > 0)
+        .map(([k, v]) =>
+          `<span class="text-xs font-semibold px-2.5 py-1 rounded-full ${colors[k]}">${k} ${v}</span>`
+        ).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', updateSummary);
+  </script>
+
+</body>
+</html>

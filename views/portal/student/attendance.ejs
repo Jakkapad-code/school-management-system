@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Student Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="font-kanit bg-gray-50">
+
+  <% const activePage = 'attendance'; %>
+  <%- include('./partials/sidebar', { activePage }) %>
+
+  <div class="ml-16 flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Header -->
+    <header class="bg-white border-b border-slate-200/60 px-8 py-4 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-sm font-semibold text-slate-800 tracking-tight">สถิติการเข้าเรียน</h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">Student Portal</p>
+      </div>
+      <% if (student) { %>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200/60 flex items-center justify-center">
+            <span class="text-slate-600 font-bold text-sm"><%= student.first_name.charAt(0) %></span>
+          </div>
+          <div class="text-right">
+            <p class="text-xs font-semibold text-slate-700 leading-none"><%= student.first_name %> <%= student.last_name %></p>
+            <p class="font-mono text-[10px] text-slate-400 mt-0.5"><%= student.room_name || 'ไม่ระบุห้อง' %></p>
+          </div>
+        </div>
+      <% } %>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8">
+
+      <% if (success_msg && success_msg.length > 0) { %>
+        <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200/60 text-emerald-700 rounded-lg px-4 py-3 mb-5 text-xs">
+          <%- hi('check-circle', 'h-3.5 w-3.5 flex-shrink-0') %><span><%= success_msg %></span>
+        </div>
+      <% } %>
+      <% if (error_msg && error_msg.length > 0) { %>
+        <div class="flex items-center gap-2 bg-red-50 border border-red-200/60 text-red-600 rounded-lg px-4 py-3 mb-5 text-xs">
+          <%- hi('exclamation-circle', 'h-3.5 w-3.5 flex-shrink-0') %><span><%= error_msg %></span>
+        </div>
+      <% } %>
+
+      <% if (!student) { %>
+        <div class="bg-white rounded-xl border border-slate-200/60 text-center py-16">
+          <div class="w-12 h-12 bg-amber-50 border border-amber-200/60 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <%- hi('exclamation-triangle', 'h-5 w-5 text-amber-500') %>
+          </div>
+          <p class="font-semibold text-slate-700 text-sm">ยังไม่ได้เชื่อมข้อมูลนักเรียน</p>
+          <p class="text-slate-400 text-xs mt-1.5 max-w-xs mx-auto">
+            บัญชีนี้ยังไม่ได้ถูกผูกกับข้อมูลนักเรียนในระบบ กรุณาติดต่อผู้ดูแลระบบเพื่อเชื่อมข้อมูล
+          </p>
+        </div>
+
+      <% } else { %>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+
+          <!-- รวมทั้งหมด -->
+          <div class="bg-white border border-slate-200/60 rounded-xl px-5 py-4">
+            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">รวมทั้งหมด</p>
+            <p class="font-mono text-2xl font-bold text-slate-800"><%= summary.total %></p>
+            <p class="text-[10px] text-slate-400 mt-0.5">วัน</p>
+          </div>
+
+          <!-- มาเรียน -->
+          <div class="bg-white border border-slate-200/60 rounded-xl px-5 py-4">
+            <p class="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider mb-1">มาเรียน</p>
+            <p class="font-mono text-2xl font-bold text-emerald-600"><%= summary.present %></p>
+            <p class="text-[10px] text-slate-400 mt-0.5">
+              <% if (summary.total > 0) { %>
+                <%= ((summary.present / summary.total) * 100).toFixed(1) %>%
+              <% } else { %>
+                0%
+              <% } %>
+            </p>
+          </div>
+
+          <!-- สาย -->
+          <div class="bg-white border border-slate-200/60 rounded-xl px-5 py-4">
+            <p class="text-[10px] font-semibold text-yellow-500 uppercase tracking-wider mb-1">มาสาย</p>
+            <p class="font-mono text-2xl font-bold text-yellow-600"><%= summary.late %></p>
+            <p class="text-[10px] text-slate-400 mt-0.5">
+              <% if (summary.total > 0) { %>
+                <%= ((summary.late / summary.total) * 100).toFixed(1) %>%
+              <% } else { %>
+                0%
+              <% } %>
+            </p>
+          </div>
+
+          <!-- ขาดเรียน -->
+          <div class="bg-white border border-slate-200/60 rounded-xl px-5 py-4">
+            <p class="text-[10px] font-semibold text-red-400 uppercase tracking-wider mb-1">ขาดเรียน</p>
+            <p class="font-mono text-2xl font-bold text-red-500"><%= summary.absent %></p>
+            <p class="text-[10px] text-slate-400 mt-0.5">
+              <% if (summary.total > 0) { %>
+                <%= ((summary.absent / summary.total) * 100).toFixed(1) %>%
+              <% } else { %>
+                0%
+              <% } %>
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Attendance Rate Bar -->
+        <% if (summary.total > 0) { %>
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-4 mb-6">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-xs font-semibold text-slate-600">อัตราการเข้าเรียน</p>
+              <span class="font-mono text-xs font-bold <%=
+                (summary.present / summary.total) >= 0.8 ? 'text-emerald-600' :
+                (summary.present / summary.total) >= 0.6 ? 'text-yellow-600'  : 'text-red-500'
+              %>"><%= ((summary.present / summary.total) * 100).toFixed(1) %>%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div class="h-2 rounded-full <%=
+                (summary.present / summary.total) >= 0.8 ? 'bg-emerald-400' :
+                (summary.present / summary.total) >= 0.6 ? 'bg-yellow-400'  : 'bg-red-400'
+              %>" style="width: <%= ((summary.present / summary.total) * 100).toFixed(1) %>%"></div>
+            </div>
+          </div>
+        <% } %>
+
+        <!-- History Table -->
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div class="px-6 py-3.5 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full bg-slate-400"></div>
+            <p class="font-semibold text-slate-700 text-sm">ประวัติการเข้าเรียน</p>
+            <span class="font-mono text-[10px] text-slate-400"><%= records.length %> รายการ</span>
+          </div>
+
+          <% if (records.length === 0) { %>
+            <div class="text-center py-12">
+              <div class="w-10 h-10 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <%- hi('clipboard-document-list', 'h-4 w-4 text-slate-400') %>
+              </div>
+              <p class="font-semibold text-slate-500 text-sm">ยังไม่มีประวัติการเข้าเรียน</p>
+              <p class="text-slate-400 text-xs mt-1">ยังไม่มีการบันทึกข้อมูลการเข้าเรียนสำหรับบัญชีนี้</p>
+            </div>
+
+          <% } else { %>
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="border-b border-gray-100">
+                  <th class="px-6 py-2.5 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">#</th>
+                  <th class="px-4 py-2.5 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">วันที่</th>
+                  <th class="px-6 py-2.5 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <% records.forEach(function(r, i) { %>
+                  <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-3 font-mono text-slate-300 text-[10px]"><%= i + 1 %></td>
+                    <td class="px-4 py-3 font-mono text-slate-600 text-xs"><%= r.date %></td>
+                    <td class="px-6 py-3">
+                      <% if (r.status === 'Present') { %>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>มาเรียน
+                        </span>
+                      <% } else if (r.status === 'Late') { %>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-700 text-[11px] font-semibold">
+                          <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>มาสาย
+                        </span>
+                      <% } else if (r.status === 'Absent') { %>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 text-red-600 text-[11px] font-semibold">
+                          <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>ขาดเรียน
+                        </span>
+                      <% } else { %>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-gray-200 bg-gray-50 text-gray-500 text-[11px] font-semibold">
+                          <%= r.status %>
+                        </span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+
+        </div>
+
+      <% } %>
+
+    </main>
+  </div>
+
+</body>
+</html>

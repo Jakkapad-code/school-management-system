@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Student Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="font-kanit bg-gray-50">
+
+  <% const activePage = 'grades'; %>
+  <%- include('./partials/sidebar', { activePage }) %>
+
+  <%
+    function gradeBadgeClass(letter) {
+      if (letter === 'A')  return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      if (letter === 'B+') return 'bg-teal-50 text-teal-700 border-teal-200';
+      if (letter === 'B')  return 'bg-blue-50 text-blue-700 border-blue-200';
+      if (letter === 'C+') return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      if (letter === 'C')  return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      if (letter === 'D+') return 'bg-orange-50 text-orange-700 border-orange-200';
+      if (letter === 'D')  return 'bg-red-50 text-red-600 border-red-200';
+      if (letter === 'F')  return 'bg-red-100 text-red-700 border-red-300';
+      return 'bg-gray-50 text-gray-400 border-gray-200';
+    }
+  %>
+
+  <div class="ml-16 flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Header -->
+    <header class="bg-white border-b border-slate-200/60 px-8 py-4 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-sm font-semibold text-slate-800 tracking-tight">ผลการเรียน</h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">Student Portal</p>
+      </div>
+      <% if (student) { %>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200/60 flex items-center justify-center">
+            <span class="text-slate-600 font-bold text-sm"><%= student.first_name.charAt(0) %></span>
+          </div>
+          <div class="text-right">
+            <p class="text-xs font-semibold text-slate-700 leading-none"><%= student.first_name %> <%= student.last_name %></p>
+            <p class="font-mono text-[10px] text-slate-400 mt-0.5"><%= student.room_name || 'ไม่ระบุห้อง' %></p>
+          </div>
+        </div>
+      <% } %>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8">
+
+      <% if (success_msg && success_msg.length > 0) { %>
+        <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200/60 text-emerald-700 rounded-lg px-4 py-3 mb-5 text-xs">
+          <%- hi('check-circle', 'h-3.5 w-3.5 flex-shrink-0') %><span><%= success_msg %></span>
+        </div>
+      <% } %>
+      <% if (error_msg && error_msg.length > 0) { %>
+        <div class="flex items-center gap-2 bg-red-50 border border-red-200/60 text-red-600 rounded-lg px-4 py-3 mb-5 text-xs">
+          <%- hi('exclamation-circle', 'h-3.5 w-3.5 flex-shrink-0') %><span><%= error_msg %></span>
+        </div>
+      <% } %>
+
+      <% if (!student) { %>
+        <div class="bg-white rounded-xl border border-slate-200/60 text-center py-16">
+          <div class="w-12 h-12 bg-amber-50 border border-amber-200/60 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <%- hi('exclamation-triangle', 'h-5 w-5 text-amber-500') %>
+          </div>
+          <p class="font-semibold text-slate-700 text-sm">ยังไม่ได้เชื่อมข้อมูลนักเรียน</p>
+          <p class="text-slate-400 text-xs mt-1.5 max-w-xs mx-auto">
+            บัญชีนี้ยังไม่ได้ถูกผูกกับข้อมูลนักเรียนในระบบ กรุณาติดต่อผู้ดูแลระบบเพื่อเชื่อมข้อมูล
+          </p>
+        </div>
+
+      <% } else { %>
+
+        <!-- GPA Summary Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+
+          <!-- GPA รวม -->
+          <div class="bg-white border border-slate-200/60 rounded-xl px-5 py-4 col-span-2 sm:col-span-1">
+            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">GPA รวม</p>
+            <% if (gpa !== null) { %>
+              <p class="font-mono text-2xl font-bold <%=
+                parseFloat(gpa) >= 3.5 ? 'text-emerald-600' :
+                parseFloat(gpa) >= 2.5 ? 'text-blue-600'    :
+                parseFloat(gpa) >= 1.5 ? 'text-yellow-600'  : 'text-red-500'
+              %>"><%= gpa %></p>
+              <p class="text-[10px] text-slate-400 mt-0.5">จากคะแนนเต็ม 4.00</p>
+            <% } else { %>
+              <p class="text-sm font-semibold text-slate-400 mt-1">ยังไม่มีข้อมูล</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">จากคะแนนเต็ม 4.00</p>
+            <% } %>
+          </div>
+
+          <!-- หน่วยกิตสะสม -->
+          <div class="bg-white border border-slate-200/60 rounded-xl px-5 py-4">
+            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">หน่วยกิตสะสม</p>
+            <p class="font-mono text-2xl font-bold text-slate-800"><%= totalCredits %></p>
+            <p class="text-[10px] text-slate-400 mt-0.5">หน่วยกิต</p>
+          </div>
+
+          <!-- จำนวนวิชา -->
+          <div class="bg-white border border-slate-200/60 rounded-xl px-5 py-4">
+            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">จำนวนวิชา</p>
+            <p class="font-mono text-2xl font-bold text-slate-800"><%= semesterKeys.reduce((n, k) => n + gradesBySemester[k].entries.length, 0) %></p>
+            <p class="text-[10px] text-slate-400 mt-0.5">รายวิชา</p>
+          </div>
+
+          <!-- จำนวนภาคเรียน -->
+          <div class="bg-white border border-slate-200/60 rounded-xl px-5 py-4">
+            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">ภาคเรียน</p>
+            <p class="font-mono text-2xl font-bold text-slate-800"><%= semesterKeys.length %></p>
+            <p class="text-[10px] text-slate-400 mt-0.5">ภาคเรียน</p>
+          </div>
+
+        </div>
+
+        <% if (semesterKeys.length === 0) { %>
+          <div class="bg-white rounded-xl border border-slate-200/60 text-center py-16">
+            <div class="w-12 h-12 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <%- hi('chart-bar', 'h-5 w-5 text-slate-400') %>
+            </div>
+            <p class="font-semibold text-slate-600 text-sm">ยังไม่มีผลการเรียน</p>
+            <p class="text-slate-400 text-xs mt-1.5">ยังไม่มีการบันทึกเกรดสำหรับบัญชีนี้</p>
+          </div>
+
+        <% } else { %>
+
+          <!-- Grade Tables grouped by semester -->
+          <div class="space-y-5">
+            <% semesterKeys.forEach(function(key) { %>
+              <% const sg = gradesBySemester[key]; %>
+              <%
+                // คำนวณ GPA ของภาคเรียนนี้
+                let sw = 0, sc = 0;
+                sg.entries.forEach(e => { if (e.point !== null && e.credit) { sw += e.point * e.credit; sc += e.credit; } });
+                const semGpa = sc > 0 ? (sw / sc).toFixed(2) : null;
+              %>
+
+              <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+
+                <!-- Section header -->
+                <div class="px-6 py-3.5 border-b border-gray-100 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-slate-400"></div>
+                    <p class="font-semibold text-slate-700 text-sm">ภาคเรียนที่ <%= sg.semester %> / <%= sg.year %></p>
+                    <span class="font-mono text-[10px] text-slate-400"><%= sg.entries.length %> วิชา</span>
+                  </div>
+                  <% if (semGpa !== null) { %>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[10px] text-slate-400">GPA ภาคเรียน</span>
+                      <span class="font-mono text-xs font-bold <%=
+                        parseFloat(semGpa) >= 3.5 ? 'text-emerald-600' :
+                        parseFloat(semGpa) >= 2.5 ? 'text-blue-600'    :
+                        parseFloat(semGpa) >= 1.5 ? 'text-yellow-600'  : 'text-red-500'
+                      %>"><%= semGpa %></span>
+                    </div>
+                  <% } %>
+                </div>
+
+                <!-- Grade table -->
+                <table class="w-full text-xs">
+                  <thead>
+                    <tr class="border-b border-gray-100">
+                      <th class="px-6 py-2.5 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-28">รหัสวิชา</th>
+                      <th class="px-4 py-2.5 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">ชื่อวิชา</th>
+                      <th class="px-4 py-2.5 text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20">หน่วยกิต</th>
+                      <th class="px-4 py-2.5 text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20">คะแนน</th>
+                      <th class="px-6 py-2.5 text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider w-20">เกรด</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100">
+                    <% sg.entries.forEach(function(e) { %>
+                      <tr class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-6 py-3.5 font-mono text-slate-400 text-[11px]"><%= e.subject_id %></td>
+                        <td class="px-4 py-3.5">
+                          <p class="font-medium text-slate-700 text-xs"><%= e.subject_name || '—' %></p>
+                        </td>
+                        <td class="px-4 py-3.5 text-center font-mono text-slate-500">
+                          <%= e.credit !== null && e.credit !== undefined ? e.credit : '—' %>
+                        </td>
+                        <td class="px-4 py-3.5 text-center font-mono font-semibold text-slate-700">
+                          <%= e.grade !== null && e.grade !== undefined ? e.grade : '—' %>
+                        </td>
+                        <td class="px-6 py-3.5 text-center">
+                          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-2.5 py-1 rounded-lg border text-xs font-bold <%= gradeBadgeClass(e.letter) %>">
+                            <%= e.letter %>
+                          </span>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+
+              </div>
+            <% }) %>
+          </div>
+
+        <% } %>
+      <% } %>
+
+    </main>
+  </div>
+
+</body>
+</html>

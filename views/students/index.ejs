@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | ระบบบริหารจัดการโรงเรียน</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="font-kanit bg-gray-50">
+
+  <% var activePage = 'students'; %>
+  <%- include('../partials/sidebar', { activePage }) %>
+
+  <div class="ml-16 flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Bar -->
+    <header class="bg-white border-b border-slate-200/60 px-8 py-4 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-sm font-semibold text-slate-800 tracking-tight">จัดการนักเรียน</h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">
+          <a href="/dashboard" class="hover:text-slate-600 transition-colors">หน้าหลัก</a>
+          <span class="mx-1.5 text-slate-300">/</span>จัดการนักเรียน
+        </p>
+      </div>
+      <a
+        href="/students/add"
+        class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg text-xs transition"
+      >
+        <%- hi('plus', 'h-3.5 w-3.5') %>เพิ่มนักเรียนใหม่
+      </a>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8">
+
+      <!-- Flash -->
+      <% if (success_msg && success_msg.length > 0) { %>
+        <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200/60 text-emerald-700 rounded-lg px-4 py-3 mb-5 text-xs">
+          <%- hi('check-circle', 'h-3.5 w-3.5 flex-shrink-0') %><span><%= success_msg %></span>
+        </div>
+      <% } %>
+      <% if (error_msg && error_msg.length > 0) { %>
+        <div class="flex items-center gap-2 bg-red-50 border border-red-200/60 text-red-600 rounded-lg px-4 py-3 mb-5 text-xs">
+          <%- hi('exclamation-circle', 'h-3.5 w-3.5 flex-shrink-0') %><span><%= error_msg %></span>
+        </div>
+      <% } %>
+
+      <!-- Table Card -->
+      <div class="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 bg-slate-50 border border-slate-200/60 rounded-lg flex items-center justify-center">
+              <%- hi('users', 'h-3.5 w-3.5 text-slate-500') %>
+            </div>
+            <div>
+              <p class="font-semibold text-slate-700 text-sm">รายชื่อนักเรียนทั้งหมด</p>
+              <p class="font-mono text-[10px] text-slate-400"><%= students.length %> รายการ</p>
+            </div>
+          </div>
+        </div>
+
+        <% if (students.length === 0) { %>
+          <div class="text-center py-16">
+            <div class="w-12 h-12 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <%- hi('users', 'h-5 w-5 text-slate-400') %>
+            </div>
+            <p class="font-semibold text-slate-600 text-sm">ยังไม่มีข้อมูลนักเรียนในระบบ</p>
+            <p class="text-slate-400 text-xs mt-1 mb-5">คลิกปุ่ม "เพิ่มนักเรียนใหม่" เพื่อเริ่มต้นเพิ่มข้อมูล</p>
+            <a
+              href="/students/add"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg text-xs transition"
+            >
+              <%- hi('plus', 'h-3.5 w-3.5') %>เพิ่มนักเรียนใหม่
+            </a>
+          </div>
+        <% } else { %>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-slate-100">
+                  <th class="text-left py-3 px-6 text-[9px] font-semibold text-slate-400 uppercase tracking-wider w-16">ID</th>
+                  <th class="text-left py-3 px-6 text-[9px] font-semibold text-slate-400 uppercase tracking-wider">นักเรียน</th>
+                  <th class="text-left py-3 px-6 text-[9px] font-semibold text-slate-400 uppercase tracking-wider">เพศ</th>
+                  <th class="text-left py-3 px-6 text-[9px] font-semibold text-slate-400 uppercase tracking-wider">ห้องเรียน</th>
+                  <th class="text-left py-3 px-6 text-[9px] font-semibold text-slate-400 uppercase tracking-wider">ภาค/ปี</th>
+                  <th class="text-left py-3 px-6 text-[9px] font-semibold text-slate-400 uppercase tracking-wider">เบอร์โทร</th>
+                  <th class="text-left py-3 px-6 text-[9px] font-semibold text-slate-400 uppercase tracking-wider">บัญชีผู้ใช้</th>
+                  <th class="text-right py-3 px-6 text-[9px] font-semibold text-slate-400 uppercase tracking-wider">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <% students.forEach(function(student) { %>
+                <tr class="hover:bg-slate-50/50 transition-colors duration-100">
+                  <td class="py-3.5 px-6 font-mono text-xs text-slate-400">#<%= student.student_id %></td>
+                  <td class="py-3.5 px-6">
+                    <div class="flex items-center gap-3">
+                      <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/60 flex items-center justify-center flex-shrink-0">
+                        <span class="text-slate-500 font-bold text-[10px]"><%= student.first_name.charAt(0) %></span>
+                      </div>
+                      <p class="text-sm font-semibold text-slate-700"><%= student.first_name %> <%= student.last_name %></p>
+                    </div>
+                  </td>
+                  <td class="py-3.5 px-6">
+                    <% if (student.sex) { %>
+                      <%
+                        var sexLabel = student.sex === 'Male' ? 'ชาย' : student.sex === 'Female' ? 'หญิง' : 'อื่นๆ';
+                        var sexColor = student.sex === 'Male' ? 'bg-blue-50 text-blue-500 border-blue-200/60'
+                                     : student.sex === 'Female' ? 'bg-pink-50 text-pink-500 border-pink-200/60'
+                                     : 'bg-slate-50 text-slate-500 border-slate-200/60';
+                      %>
+                      <span class="inline-flex px-2 py-0.5 border rounded text-xs font-medium <%= sexColor %>"><%= sexLabel %></span>
+                    <% } else { %>
+                      <span class="text-slate-300 text-xs">—</span>
+                    <% } %>
+                  </td>
+                  <td class="py-3.5 px-6">
+                    <% if (student.room_name) { %>
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 text-slate-500 border border-slate-200/60 rounded text-xs font-medium">
+                        <%- hi('building-office', 'h-3 w-3') %><%= student.room_name %>
+                      </span>
+                    <% } else { %>
+                      <span class="text-slate-300 text-xs">—</span>
+                    <% } %>
+                  </td>
+                  <td class="py-3.5 px-6 font-mono text-xs text-slate-500">
+                    <%= student.semester %>/<%= student.year %>
+                  </td>
+                  <td class="py-3.5 px-6 font-mono text-xs text-slate-500">
+                    <%= student.phone ? student.phone : '<span class="text-slate-300 font-sans">—</span>' %>
+                  </td>
+                  <td class="py-3.5 px-6">
+                    <% if (student.username) { %>
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 text-slate-500 border border-slate-200/60 rounded font-mono text-[11px]">
+                        <%- hi('user-circle', 'h-3 w-3') %><%= student.username %>
+                      </span>
+                    <% } else { %>
+                      <span class="text-slate-300 text-xs">—</span>
+                    <% } %>
+                  </td>
+                  <td class="py-3.5 px-6">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <a
+                        href="/students/<%= student.student_id %>/edit"
+                        class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200/60 rounded-lg text-[11px] font-semibold transition"
+                      >
+                        <%- hi('pencil-square', 'h-3 w-3') %>แก้ไข
+                      </a>
+                      <form
+                        action="/students/<%= student.student_id %>/delete"
+                        method="POST"
+                        onsubmit="return confirm('ยืนยันการลบนักเรียน <%= student.first_name %> <%= student.last_name %> ?')"
+                        class="inline"
+                      >
+                        <button
+                          type="submit"
+                          class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 border border-slate-200/60 hover:border-red-200/60 rounded-lg text-[11px] font-semibold transition"
+                        >
+                          <%- hi('trash', 'h-3 w-3') %>ลบ
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </main>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Database files (สำคัญมาก เพื่อไม่ให้ไฟล์ฐานข้อมูลจริงหลุดไป)
+db/*.db
+db/*.sqlite
+*.db
+*.sqlite
+sessions.db
+
+# Environment variables (ถ้ามีไฟล์เก็บความลับ เช่น Secret Key)
+.env
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/

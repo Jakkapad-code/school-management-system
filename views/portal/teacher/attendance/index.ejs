@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Teacher Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="font-kanit bg-gray-50">
+
+  <% const activePage = 'attendance'; %>
+  <%- include('../partials/sidebar', { activePage }) %>
+
+  <%
+    const DAY_TH = {
+      Monday:'จันทร์', Tuesday:'อังคาร', Wednesday:'พุธ',
+      Thursday:'พฤหัสบดี', Friday:'ศุกร์', Saturday:'เสาร์', Sunday:'อาทิตย์'
+    };
+    const DAY_COLOR = {
+      Monday:    { bar:'bg-blue-500',    badge:'bg-blue-100 text-blue-700',    ring:'ring-blue-200' },
+      Tuesday:   { bar:'bg-pink-500',    badge:'bg-pink-100 text-pink-700',    ring:'ring-pink-200' },
+      Wednesday: { bar:'bg-emerald-500', badge:'bg-emerald-100 text-emerald-700', ring:'ring-emerald-200' },
+      Thursday:  { bar:'bg-orange-500',  badge:'bg-orange-100 text-orange-700', ring:'ring-orange-200' },
+      Friday:    { bar:'bg-yellow-500',  badge:'bg-yellow-100 text-yellow-700', ring:'ring-yellow-200' },
+      Saturday:  { bar:'bg-purple-500',  badge:'bg-purple-100 text-purple-700', ring:'ring-purple-200' },
+      Sunday:    { bar:'bg-red-500',     badge:'bg-red-100 text-red-700',      ring:'ring-red-200' },
+    };
+    const DAY_KEYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+    const byDay = {};
+    DAY_KEYS.forEach(d => { byDay[d] = []; });
+    schedules.forEach(sc => { if (byDay[sc.day]) byDay[sc.day].push(sc); });
+
+    const todayStr = new Date().toISOString().split('T')[0];
+  %>
+
+  <div class="ml-16 flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Header -->
+    <header class="bg-white border-b border-slate-200/60 px-8 py-4 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-sm font-semibold text-slate-800 tracking-tight">เช็คชื่อนักเรียน</h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">เลือกคาบสอนที่ต้องการเช็คชื่อ</p>
+      </div>
+      <% if (schedules.length > 0) { %>
+        <span class="text-xs text-gray-400"><%= schedules.length %> คาบทั้งหมด</span>
+      <% } %>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8">
+
+      <!-- Flash Messages -->
+      <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+        <div class="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 flex items-center gap-2">
+          <%- hi('check-circle', 'h-4 w-4 flex-shrink-0') %>
+          <%= success_msg[0] %>
+        </div>
+      <% } %>
+      <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+        <div class="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700"><%= error_msg[0] %></div>
+      <% } %>
+
+      <% if (!teacher) { %>
+        <div class="bg-white border border-slate-200/60 rounded-xl p-12 text-center">
+          <%- hi('user-x-mark', 'h-8 w-8 text-gray-300 mx-auto mb-3') %>
+          <p class="text-gray-500 text-sm">ไม่พบข้อมูลครูที่ผูกกับบัญชีนี้</p>
+        </div>
+      <% } else if (schedules.length === 0) { %>
+        <div class="bg-white border border-slate-200/60 rounded-xl p-12 text-center">
+          <%- hi('calendar-x-mark', 'h-8 w-8 text-gray-300 mx-auto mb-3') %>
+          <p class="text-gray-500 text-sm font-medium">ยังไม่มีตารางสอนในระบบ</p>
+          <p class="text-gray-400 text-xs mt-1">ติดต่อผู้ดูแลระบบเพื่อเพิ่มตารางสอน</p>
+        </div>
+      <% } else { %>
+
+        <!-- Date Picker Bar -->
+        <div class="mb-7 bg-white border border-slate-200/60 rounded-xl px-5 py-4 flex items-center justify-between gap-6">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <%- hi('calendar-days', 'h-4.5 w-4.5 text-gray-500') %>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-0.5">วันที่เช็คชื่อ</p>
+              <input type="date" id="globalDate" value="<%= todayStr %>"
+                class="text-sm font-semibold text-gray-800 border-0 outline-none bg-transparent cursor-pointer leading-none"
+                onchange="updateAllLinks(this.value)">
+            </div>
+          </div>
+          <div class="hidden sm:flex items-center gap-2 text-xs text-gray-400">
+            <%- hi('information-circle', 'h-4 w-4 text-gray-300 flex-shrink-0') %>
+            <span>เลือกวันที่ก่อน แล้วกดปุ่ม <strong class="text-gray-600">เช็คชื่อ</strong> ในคาบที่ต้องการ</span>
+          </div>
+        </div>
+
+        <!-- Schedule Sections by Day -->
+        <div class="space-y-8">
+          <% DAY_KEYS.forEach(day => { %>
+            <% if (byDay[day].length > 0) { %>
+              <% const col = DAY_COLOR[day] || DAY_COLOR['Monday']; %>
+
+              <section>
+                <!-- Day Section Header -->
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-1 h-5 rounded-full <%= col.bar %> flex-shrink-0"></div>
+                  <span class="text-sm font-bold text-gray-800">วัน<%= DAY_TH[day] %></span>
+                  <span class="text-xs font-medium px-2.5 py-0.5 rounded-full <%= col.badge %>">
+                    <%= byDay[day].length %> คาบ
+                  </span>
+                  <div class="flex-1 h-px bg-gray-100"></div>
+                </div>
+
+                <!-- Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  <% byDay[day].forEach(sc => { %>
+                    <div class="group bg-white border border-slate-200/60 rounded-xl p-5 flex flex-col gap-4
+                                hover:border-gray-300 hover:shadow-sm transition-all duration-150">
+
+                      <!-- Card Top: Subject + Period badge -->
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                          <p class="text-sm font-bold text-gray-900 leading-snug truncate">
+                            <%= sc.subject_name || 'ไม่ระบุวิชา' %>
+                          </p>
+                          <p class="text-[11px] text-gray-400 mt-1"><%= sc.subject_id %></p>
+                        </div>
+                        <span class="flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-lg <%= col.badge %>">
+                          คาบ <%= sc.period %>
+                        </span>
+                      </div>
+
+                      <!-- Card Meta: Room + Term -->
+                      <div class="flex items-center gap-4 text-xs text-gray-500">
+                        <div class="flex items-center gap-1.5">
+                          <%- hi('building-office-2', 'h-3.5 w-3.5 text-gray-400 flex-shrink-0') %>
+                          <span class="font-medium text-gray-700"><%= sc.room_name || '—' %></span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                          <%- hi('academic-cap', 'h-3.5 w-3.5 text-gray-400 flex-shrink-0') %>
+                          <span>ม.<%= sc.grade_level %></span>
+                        </div>
+                        <div class="flex items-center gap-1.5 ml-auto">
+                          <%- hi('calendar-days', 'h-3.5 w-3.5 text-gray-400 flex-shrink-0') %>
+                          <span>เทอม <%= sc.semester %>/<%= sc.year %></span>
+                        </div>
+                      </div>
+
+                      <!-- Action Button -->
+                      <a href="/teacher/attendance/mark?schedule_id=<%= sc.ID %>&date=<%= todayStr %>"
+                         data-schedule-id="<%= sc.ID %>"
+                         class="attendance-link mt-auto w-full flex items-center justify-center gap-2 px-4 py-2.5
+                                bg-gray-900 text-white text-xs font-semibold rounded-lg
+                                hover:bg-gray-700 transition-colors duration-150">
+                        <%- hi('clipboard-document-check', 'h-3.5 w-3.5') %>
+                        เช็คชื่อ
+                      </a>
+                    </div>
+                  <% }); %>
+                </div>
+              </section>
+
+            <% } %>
+          <% }); %>
+        </div>
+
+      <% } %>
+    </main>
+  </div>
+
+  <script>
+    function updateAllLinks(dateVal) {
+      document.querySelectorAll('a.attendance-link').forEach(el => {
+        const url = new URL(el.href);
+        url.searchParams.set('date', dateVal);
+        el.href = url.toString();
+      });
+    }
+  </script>
+
+</body>
+</html>

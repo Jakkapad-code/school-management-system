@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | ระบบบริหารจัดการโรงเรียน</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="font-kanit bg-gray-50">
+
+  <% const activePage = 'classrooms'; %>
+  <%- include('../partials/sidebar', { activePage }) %>
+
+  <div class="ml-16 flex flex-col h-screen overflow-hidden">
+
+    <header class="bg-white border-b border-slate-200/60 px-8 py-4 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-sm font-semibold text-slate-800 tracking-tight">แก้ไขข้อมูลห้องเรียน</h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">
+          <a href="/dashboard" class="hover:text-slate-600 transition-colors">หน้าหลัก</a>
+          <span class="mx-1.5 text-slate-300">/</span>
+          <a href="/classrooms" class="hover:text-slate-600 transition-colors">จัดการห้องเรียน</a>
+          <span class="mx-1.5 text-slate-300">/</span>แก้ไข <%= room.room_name %>
+        </p>
+      </div>
+      <a href="/classrooms" class="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200/60 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 font-semibold rounded-lg text-xs transition">
+        <%- hi('arrow-left', 'h-3.5 w-3.5') %>ย้อนกลับ
+      </a>
+    </header>
+
+    <main class="flex-1 overflow-y-auto px-8 py-10">
+      <div class="max-w-3xl mx-auto">
+
+        <% if (error_msg && error_msg.length > 0) { %>
+          <div class="flex items-center gap-2 bg-red-50 border border-red-200/60 text-red-600 rounded-lg px-4 py-3 mb-6 text-xs">
+            <%- hi('exclamation-circle', 'h-3.5 w-3.5 flex-shrink-0') %><span><%= error_msg %></span>
+          </div>
+        <% } %>
+
+        <div class="flex items-center gap-4 mb-8">
+          <div class="w-11 h-11 rounded-full bg-slate-100 border border-slate-200/60 flex items-center justify-center flex-shrink-0">
+            <%- hi('building-office', 'h-5 w-5 text-slate-500') %>
+          </div>
+          <div>
+            <h2 class="font-semibold text-slate-800 text-base leading-tight"><%= room.room_name %></h2>
+            <p class="font-mono text-[10px] text-slate-400 mt-0.5">room_id: #<%= room.room_id %></p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
+
+          <div class="px-6 py-4 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 bg-slate-50 border border-slate-200/60 rounded-lg flex items-center justify-center">
+                <%- hi('pencil-square', 'h-3.5 w-3.5 text-slate-500') %>
+              </div>
+              <p class="font-semibold text-slate-700 text-sm">แก้ไขข้อมูล</p>
+            </div>
+          </div>
+
+          <form action="/classrooms/<%= room.room_id %>/edit" method="POST" class="p-6 space-y-6">
+
+            <div>
+              <p class="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.16em] mb-4 flex items-center gap-1.5">
+                <%- hi('identification', 'h-3 w-3') %>ข้อมูลห้องเรียน
+              </p>
+              <div class="grid grid-cols-2 gap-4">
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1.5">
+                    ชื่อห้อง <span class="text-slate-400 font-normal">*</span>
+                  </label>
+                  <input
+                    type="text" name="room_name" value="<%= room.room_name %>" required
+                    class="w-full px-3.5 py-2.5 border border-slate-200/60 rounded-lg text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 focus:bg-white transition"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1.5">
+                    ระดับชั้น (ม.) <span class="text-slate-400 font-normal">*</span>
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <%- hi('academic-cap', 'h-3.5 w-3.5 text-slate-400') %>
+                    </div>
+                    <select name="grade_level" required
+                      class="w-full pl-9 pr-3.5 py-2.5 border border-slate-200/60 rounded-lg text-sm text-slate-700 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 focus:bg-white transition appearance-none cursor-pointer">
+                      <% [1,2,3,4,5,6].forEach(g => { %>
+                        <option value="<%= g %>" <%= room.grade_level == g ? 'selected' : '' %>>ม.<%= g %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1.5">
+                    สถานะ <span class="text-slate-400 font-normal">*</span>
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <%- hi('signal', 'h-3.5 w-3.5 text-slate-400') %>
+                    </div>
+                    <select name="status" required
+                      class="w-full pl-9 pr-3.5 py-2.5 border border-slate-200/60 rounded-lg text-sm text-slate-700 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 focus:bg-white transition appearance-none cursor-pointer">
+                      <option value="In-used" <%= room.status === 'In-used' ? 'selected' : '' %>>ใช้งานอยู่</option>
+                      <option value="Unused"  <%= room.status === 'Unused'  ? 'selected' : '' %>>ว่าง</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 mb-1.5">คำอธิบาย</label>
+                  <input
+                    type="text" name="description" value="<%= room.description || '' %>"
+                    placeholder="เช่น ห้องเรียนชั้น 2 อาคาร A"
+                    class="w-full px-3.5 py-2.5 border border-slate-200/60 rounded-lg text-sm text-slate-800 placeholder-slate-400 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 focus:bg-white transition"
+                  >
+                </div>
+
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <a href="/classrooms"
+                class="px-4 py-2 border border-slate-200/60 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-600 font-semibold rounded-lg text-xs transition">
+                ยกเลิก
+              </a>
+              <button type="submit"
+                class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg text-xs transition">
+                <%- hi('check', 'h-3.5 w-3.5') %>บันทึกการแก้ไข
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+</body>
+</html>

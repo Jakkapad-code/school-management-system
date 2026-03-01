@@ -1,0 +1,44 @@
+<%#
+  layout.ejs — Base template reference (not used by express-ejs-layouts)
+  All views are self-contained and use <%- include('partials/sidebar') %> directly.
+
+  Stack: Tailwind CSS CDN + Google Fonts Kanit + Font Awesome 6.5
+  CDN URLs used in every view:
+    - https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap
+    - https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css
+    - https://cdn.tailwindcss.com
+%>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | ระบบบริหารจัดการโรงเรียน</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="font-kanit bg-slate-50">
+
+  <% if (success_msg && success_msg.length > 0) { %>
+    <div class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-3 m-4 text-sm">
+      <i class="fa-solid fa-circle-check flex-shrink-0"></i><span><%= success_msg %></span>
+    </div>
+  <% } %>
+  <% if (error_msg && error_msg.length > 0) { %>
+    <div class="flex items-center gap-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 m-4 text-sm">
+      <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i><span><%= error_msg %></span>
+    </div>
+  <% } %>
+
+  <%- body %>
+
+</body>
+</html>

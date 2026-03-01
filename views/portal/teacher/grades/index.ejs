@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Teacher Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="font-kanit bg-gray-50">
+
+  <% const activePage = 'grades'; %>
+  <%- include('../partials/sidebar', { activePage }) %>
+
+  <div class="ml-16 flex flex-col h-screen overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200/60 px-8 py-4 flex items-center justify-between flex-shrink-0">
+      <div>
+        <h1 class="text-sm font-semibold text-slate-800 tracking-tight">บันทึกคะแนน</h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">
+          <a href="/teacher/dashboard" class="hover:text-slate-600 transition-colors">หน้าหลัก</a>
+          <span class="mx-1.5 text-slate-300">/</span>บันทึกคะแนน
+        </p>
+      </div>
+      <% if (subjects && subjects.length > 0) { %>
+        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg">
+          <%- hi('book-open', 'h-3.5 w-3.5 text-gray-400') %>
+          <span class="text-xs font-medium text-gray-600"><%= subjects.length %> วิชา</span>
+        </div>
+      <% } %>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8">
+      <div class="max-w-5xl mx-auto">
+
+        <!-- Flash -->
+        <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+          <div class="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 flex items-center gap-2">
+            <%- hi('check-circle', 'h-4 w-4 flex-shrink-0') %><span><%= success_msg[0] %></span>
+          </div>
+        <% } %>
+        <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+          <div class="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center gap-2">
+            <%- hi('exclamation-circle', 'h-4 w-4 flex-shrink-0') %><span><%= error_msg[0] %></span>
+          </div>
+        <% } %>
+
+        <% if (!teacher) { %>
+
+          <div class="bg-white border border-slate-200/60 rounded-xl py-20 flex flex-col items-center justify-center text-center">
+            <div class="w-14 h-14 bg-gray-50 border border-gray-200 rounded-2xl flex items-center justify-center mb-4">
+              <%- hi('user-x-mark', 'h-6 w-6 text-gray-300') %>
+            </div>
+            <p class="text-sm font-semibold text-gray-600">ไม่พบข้อมูลครู</p>
+            <p class="text-xs text-gray-400 mt-1">บัญชีนี้ยังไม่ได้เชื่อมกับข้อมูลครูในระบบ</p>
+          </div>
+
+        <% } else if (!subjects || subjects.length === 0) { %>
+
+          <div class="bg-white border border-slate-200/60 rounded-xl py-20 flex flex-col items-center justify-center text-center">
+            <div class="w-14 h-14 bg-gray-50 border border-gray-200 rounded-2xl flex items-center justify-center mb-4">
+              <%- hi('book-open', 'h-6 w-6 text-gray-300') %>
+            </div>
+            <p class="text-sm font-semibold text-gray-600">ยังไม่มีวิชาที่สอน</p>
+            <p class="text-xs text-gray-400 mt-1.5 max-w-xs">ติดต่อผู้ดูแลระบบเพื่อให้เพิ่มตารางสอนของคุณก่อนใช้งาน</p>
+          </div>
+
+        <% } else { %>
+
+          <!-- Subject Cards Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <% subjects.forEach(sub => { %>
+              <div class="group bg-white border border-slate-200/60 rounded-xl p-5 flex flex-col gap-4 hover:border-gray-300 transition-colors duration-150">
+
+                <!-- Subject Info -->
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-bold text-gray-900 leading-snug truncate"><%= sub.subject_name %></p>
+                    <p class="text-[11px] text-gray-400 mt-0.5 font-mono"><%= sub.subject_id %></p>
+                  </div>
+                  <span class="flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600">
+                    ม.<%= sub.grade_level %>
+                  </span>
+                </div>
+
+                <!-- Meta -->
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500">
+                  <div class="flex items-center gap-1.5">
+                    <%- hi('academic-cap', 'h-3.5 w-3.5 text-gray-400') %>
+                    <span><%= sub.credit %> หน่วยกิต</span>
+                  </div>
+                  <% if (sub.room_names) { %>
+                    <div class="flex items-center gap-1.5">
+                      <%- hi('building-office-2', 'h-3.5 w-3.5 text-gray-400') %>
+                      <span class="font-medium text-gray-600"><%= sub.room_names %></span>
+                    </div>
+                  <% } %>
+                  <div class="flex items-center gap-1.5">
+                    <%- hi('calendar-days', 'h-3.5 w-3.5 text-gray-400') %>
+                    <span>เทอม <%= sub.semester %>/<%= sub.year %></span>
+                  </div>
+                </div>
+
+                <!-- Button -->
+                <a href="/teacher/grades/mark?subject_id=<%= sub.subject_id %>&semester=<%= sub.semester %>&year=<%= sub.year %>"
+                   class="mt-auto w-full flex items-center justify-center gap-2 px-4 py-2.5
+                          bg-gray-900 hover:bg-gray-700 text-white text-xs font-semibold rounded-lg transition-colors duration-150">
+                  <%- hi('pencil-square', 'h-3.5 w-3.5') %>
+                  บันทึกคะแนน
+                </a>
+              </div>
+            <% }); %>
+          </div>
+
+        <% } %>
+
+      </div><!-- /max-w-5xl -->
+    </main>
+  </div>
+
+</body>
+</html>

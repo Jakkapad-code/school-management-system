@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | ระบบบริหารจัดการโรงเรียน</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+</head>
+<body class="font-kanit bg-gray-50">
+
+  <% const activePage = 'teachers'; %>
+  <%- include('../partials/sidebar', { activePage }) %>
+
+  <div class="ml-16 flex flex-col h-screen overflow-hidden">
+
+      <!-- Top Header -->
+      <header class="bg-white border-b border-slate-200/60 px-8 py-4 flex items-center justify-between flex-shrink-0">
+        <div>
+          <h1 class="text-sm font-semibold text-slate-800 tracking-tight">แก้ไขข้อมูลครู</h1>
+          <p class="text-[11px] text-slate-400 mt-0.5">
+            <a href="/dashboard" class="hover:text-slate-600 transition-colors">หน้าหลัก</a>
+            <span class="mx-1.5 text-slate-300">/</span>
+            <a href="/teachers" class="hover:text-slate-600 transition-colors">จัดการครู</a>
+            <span class="mx-1.5 text-slate-300">/</span>แก้ไข <%= teacher.first_name %> <%= teacher.last_name %>
+          </p>
+        </div>
+        <a href="/teachers" class="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200/60 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 font-semibold rounded-lg text-xs transition">
+          <%- hi('arrow-left', 'h-3.5 w-3.5') %>ย้อนกลับ
+        </a>
+      </header>
+
+      <main class="flex-1 overflow-y-auto px-8 py-10">
+
+        <!-- Centered wrapper -->
+        <div class="max-w-3xl mx-auto">
+
+        <!-- Flash Messages -->
+        <% if (error_msg && error_msg.length > 0) { %>
+          <div class="flex items-center gap-2 bg-red-50 border border-red-200/60 text-red-600 rounded-lg px-4 py-3 mb-6 text-xs">
+            <%- hi('exclamation-circle', 'h-3.5 w-3.5 flex-shrink-0') %><span><%= error_msg %></span>
+          </div>
+        <% } %>
+
+        <!-- Page Header — outside the card, centered -->
+        <div class="flex items-center gap-4 mb-8">
+          <div class="w-11 h-11 rounded-full bg-slate-100 border border-slate-200/60 flex items-center justify-center flex-shrink-0">
+            <span class="text-slate-600 font-bold text-base"><%= teacher.first_name.charAt(0) %></span>
+          </div>
+          <div>
+            <h2 class="font-semibold text-slate-800 text-base leading-tight"><%= teacher.first_name %> <%= teacher.last_name %></h2>
+            <p class="font-mono text-[10px] text-slate-400 mt-0.5">teacher_id: #<%= teacher.teacher_id %></p>
+          </div>
+        </div>
+
+        <!-- Form Card — border only, no shadow -->
+        <div class="bg-white rounded-xl border border-slate-200/60 overflow-hidden">
+
+            <!-- Card Header -->
+            <div class="px-6 py-4 border-b border-slate-100">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 bg-slate-50 border border-slate-200/60 rounded-lg flex items-center justify-center">
+                  <%- hi('pencil-square', 'h-3.5 w-3.5 text-slate-500') %>
+                </div>
+                <p class="font-semibold text-slate-700 text-sm">แก้ไขข้อมูล</p>
+              </div>
+            </div>
+
+            <!-- Form Body -->
+            <form action="/teachers/<%= teacher.teacher_id %>/edit" method="POST" class="p-6 space-y-6">
+
+              <!-- Section: ข้อมูลส่วนตัว -->
+              <div>
+                <p class="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.16em] mb-4 flex items-center gap-1.5">
+                  <%- hi('identification', 'h-3 w-3') %>ข้อมูลส่วนตัว
+                </p>
+                <div class="grid grid-cols-2 gap-4">
+
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">
+                      ชื่อ <span class="text-slate-400 font-normal">*</span>
+                    </label>
+                    <input
+                      type="text" name="first_name" value="<%= teacher.first_name %>" required
+                      class="w-full px-3.5 py-2.5 border border-slate-200/60 rounded-lg text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 focus:bg-white transition"
+                    >
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">
+                      นามสกุล <span class="text-slate-400 font-normal">*</span>
+                    </label>
+                    <input
+                      type="text" name="last_name" value="<%= teacher.last_name %>" required
+                      class="w-full px-3.5 py-2.5 border border-slate-200/60 rounded-lg text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 focus:bg-white transition"
+                    >
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">เบอร์โทรศัพท์</label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <%- hi('phone', 'h-3.5 w-3.5 text-slate-400') %>
+                      </div>
+                      <input
+                        type="text" name="phone" value="<%= teacher.phone || '' %>"
+                        class="w-full pl-9 pr-3.5 py-2.5 border border-slate-200/60 rounded-lg text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 focus:bg-white transition font-mono"
+                      >
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">อีเมล</label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <%- hi('envelope', 'h-3.5 w-3.5 text-slate-400') %>
+                      </div>
+                      <input
+                        type="email" name="email" value="<%= teacher.email || '' %>"
+                        class="w-full pl-9 pr-3.5 py-2.5 border border-slate-200/60 rounded-lg text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 focus:bg-white transition"
+                      >
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <hr class="border-slate-100">
+
+              <!-- Section: การมอบหมาย -->
+              <div>
+                <p class="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.16em] mb-4 flex items-center gap-1.5">
+                  <%- hi('link', 'h-3 w-3') %>ข้อมูลการมอบหมาย
+                </p>
+                <div class="grid grid-cols-2 gap-4">
+
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ห้องเรียนที่รับผิดชอบ</label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <%- hi('building-office', 'h-3.5 w-3.5 text-slate-400') %>
+                      </div>
+                      <select
+                        name="room_id"
+                        class="w-full pl-9 pr-3.5 py-2.5 border border-slate-200/60 rounded-lg text-sm text-slate-700 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 focus:bg-white transition appearance-none cursor-pointer"
+                      >
+                        <option value="">— ไม่ระบุ —</option>
+                        <% rooms.forEach(room => { %>
+                          <option value="<%= room.room_id %>" <%= teacher.room_id == room.room_id ? 'selected' : '' %>>
+                            <%= room.room_name %>
+                          </option>
+                        <% }) %>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">เชื่อมบัญชีผู้ใช้</label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <%- hi('user-circle', 'h-3.5 w-3.5 text-slate-400') %>
+                      </div>
+                      <select
+                        name="user_id"
+                        class="w-full pl-9 pr-3.5 py-2.5 border border-slate-200/60 rounded-lg text-sm text-slate-700 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 focus:bg-white transition appearance-none cursor-pointer"
+                      >
+                        <option value="">— ไม่เชื่อมบัญชี —</option>
+                        <% users.forEach(user => { %>
+                          <option value="<%= user.user_id %>" <%= teacher.user_id == user.user_id ? 'selected' : '' %>>
+                            <%= user.username %>
+                          </option>
+                        <% }) %>
+                      </select>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1.5">บัญชี Teacher ที่ว่างอยู่หรือบัญชีเดิมของครูคนนี้</p>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                <a
+                  href="/teachers"
+                  class="px-4 py-2 border border-slate-200/60 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-600 font-semibold rounded-lg text-xs transition"
+                >
+                  ยกเลิก
+                </a>
+                <button
+                  type="submit"
+                  class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg text-xs transition"
+                >
+                  <%- hi('check', 'h-3.5 w-3.5') %>บันทึกการแก้ไข
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+        </div><!-- /max-w-3xl -->
+
+      </main>
+  </div>
+
+</body>
+</html>

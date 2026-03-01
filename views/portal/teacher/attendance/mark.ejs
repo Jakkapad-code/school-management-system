@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Teacher Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+    }
+  </script>
+  <style>
+    /* Hide native radio inputs */
+    .status-radio { display: none; }
+
+    /* Toggle button base */
+    .status-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 4px; padding: 6px 14px; border-radius: 9999px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      border: 1.5px solid transparent; transition: all 0.15s ease;
+      white-space: nowrap; user-select: none;
+    }
+
+    /* Default (unselected) state */
+    .btn-present { background: #f9fafb; border-color: #e5e7eb; color: #9ca3af; }
+    .btn-late    { background: #f9fafb; border-color: #e5e7eb; color: #9ca3af; }
+    .btn-absent  { background: #f9fafb; border-color: #e5e7eb; color: #9ca3af; }
+
+    /* Selected states */
+    input[value="Present"]:checked ~ label.btn-present { background: #dcfce7; border-color: #86efac; color: #15803d; }
+    input[value="Late"]:checked    ~ label.btn-late    { background: #fef9c3; border-color: #fde047; color: #a16207; }
+    input[value="Absent"]:checked  ~ label.btn-absent  { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+  </style>
+</head>
+<body class="font-kanit bg-gray-50">
+
+  <% const activePage = 'attendance'; %>
+  <%- include('../partials/sidebar', { activePage }) %>
+
+  <%
+    const DAY_TH = { Monday:'จันทร์', Tuesday:'อังคาร', Wednesday:'พุธ',
+                     Thursday:'พฤหัสบดี', Friday:'ศุกร์', Saturday:'เสาร์', Sunday:'อาทิตย์' };
+
+    // Format date display
+    const dateObj = new Date(date + 'T00:00:00');
+    const dateTH = dateObj.toLocaleDateString('th-TH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    // Count existing statuses
+    const statusCounts = { Present: 0, Late: 0, Absent: 0, none: 0 };
+    students.forEach(st => {
+      const s = attendanceMap[st.student_id];
+      if (s) statusCounts[s]++;
+      else statusCounts.none++;
+    });
+  %>
+
+  <div class="ml-16 flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Header -->
+    <header class="bg-white border-b border-slate-200/60 px-8 py-4 flex items-center gap-3 flex-shrink-0">
+      <a href="/teacher/attendance" class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500">
+        <%- hi('arrow-left', 'h-4 w-4') %>
+      </a>
+      <div class="min-w-0">
+        <h1 class="text-sm font-semibold text-slate-800 truncate">เช็คชื่อ — <%= schedule.subject_name || 'ไม่ระบุวิชา' %></h1>
+        <p class="text-[11px] text-slate-400 mt-0.5"><%= schedule.room_name %> · คาบ <%= schedule.period %> · วัน<%= DAY_TH[schedule.day] %></p>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8">
+      <div class="max-w-4xl mx-auto">
+
+      <!-- Flash Messages -->
+      <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+        <div class="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700 flex items-center gap-2">
+          <%- hi('check-circle', 'h-4 w-4 flex-shrink-0') %>
+          <%= success_msg[0] %>
+        </div>
+      <% } %>
+      <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+        <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"><%= error_msg[0] %></div>
+      <% } %>
+
+      <!-- Info bar -->
+      <div class="mb-5 bg-white border border-slate-200/60 rounded-xl p-4 flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2 text-sm">
+          <%- hi('calendar-days', 'h-4 w-4 text-gray-400') %>
+          <span class="font-medium text-gray-700"><%= dateTH %></span>
+        </div>
+        <div class="flex items-center gap-2 text-sm">
+          <%- hi('user-group', 'h-4 w-4 text-gray-400') %>
+          <span class="text-gray-600"><%= students.length %> คน</span>
+        </div>
+        <!-- Status summary (updated live by JS) -->
+        <div class="ml-auto flex items-center gap-2 flex-wrap">
+          <span id="summary-present" class="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">มา 0</span>
+          <span id="summary-late"    class="text-xs font-medium px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700">สาย 0</span>
+          <span id="summary-absent"  class="text-xs font-medium px-2.5 py-1 rounded-full bg-red-100 text-red-700">ขาด 0</span>
+          <span id="summary-none"    class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">ยังไม่ระบุ 0</span>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="mb-4 flex items-center gap-2">
+        <span class="text-xs text-gray-400">เลือกทั้งหมดเป็น:</span>
+        <button type="button" onclick="markAll('Present')"
+          class="text-xs font-medium px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+          มาทุกคน
+        </button>
+        <button type="button" onclick="markAll('Absent')"
+          class="text-xs font-medium px-3 py-1.5 rounded-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors">
+          ขาดทุกคน
+        </button>
+      </div>
+
+      <!-- Attendance Form -->
+      <form method="POST" action="/teacher/attendance/mark" id="attendanceForm">
+        <input type="hidden" name="schedule_id" value="<%= schedule.ID %>">
+        <input type="hidden" name="date" value="<%= date %>">
+
+        <div class="bg-white border border-slate-200/60 rounded-xl overflow-hidden">
+
+          <!-- Table Header -->
+          <div class="grid grid-cols-[2.5rem_1fr_200px] gap-x-4 items-center px-6 py-2.5 border-b border-gray-100 bg-gray-50">
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">#</span>
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">นักเรียน</span>
+            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">สถานะ</span>
+          </div>
+
+          <!-- Student Rows -->
+          <div class="divide-y divide-gray-100">
+            <% students.forEach((student, idx) => { %>
+              <% const currentStatus = attendanceMap[student.student_id] || ''; %>
+              <div class="grid grid-cols-[2.5rem_1fr_200px] gap-x-4 items-center px-6 py-3.5">
+
+                <!-- Number -->
+                <span class="text-xs text-gray-400 font-medium"><%= idx + 1 %></span>
+
+                <!-- Name -->
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-gray-800 truncate">
+                    <%= student.first_name %> <%= student.last_name %>
+                  </p>
+                  <p class="text-[11px] text-gray-400">ID: <%= student.student_id %></p>
+                </div>
+
+                <!-- Status Toggle -->
+                <div class="flex items-center gap-1.5" id="toggle-<%= student.student_id %>">
+
+                  <!-- Present -->
+                  <input class="status-radio" type="radio"
+                    id="p-<%= student.student_id %>"
+                    name="attendance[<%= student.student_id %>]"
+                    value="Present"
+                    <%= currentStatus === 'Present' ? 'checked' : '' %>>
+                  <label for="p-<%= student.student_id %>" class="status-btn btn-present"
+                    onclick="handleToggle(<%= student.student_id %>, 'Present')">
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    มา
+                  </label>
+
+                  <!-- Late -->
+                  <input class="status-radio" type="radio"
+                    id="l-<%= student.student_id %>"
+                    name="attendance[<%= student.student_id %>]"
+                    value="Late"
+                    <%= currentStatus === 'Late' ? 'checked' : '' %>>
+                  <label for="l-<%= student.student_id %>" class="status-btn btn-late"
+                    onclick="handleToggle(<%= student.student_id %>, 'Late')">
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    สาย
+                  </label>
+
+                  <!-- Absent -->
+                  <input class="status-radio" type="radio"
+                    id="a-<%= student.student_id %>"
+                    name="attendance[<%= student.student_id %>]"
+                    value="Absent"
+                    <%= currentStatus === 'Absent' ? 'checked' : '' %>>
+                  <label for="a-<%= student.student_id %>" class="status-btn btn-absent"
+                    onclick="handleToggle(<%= student.student_id %>, 'Absent')">
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    ขาด
+                  </label>
+
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="mt-5 flex items-center justify-between gap-4">
+          <a href="/teacher/attendance" class="text-sm text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-1.5">
+            <%- hi('arrow-left', 'h-3.5 w-3.5') %>
+            กลับ
+          </a>
+          <button type="submit"
+            class="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
+            <%- hi('check-circle', 'h-4 w-4') %>
+            บันทึกการเช็คชื่อ
+          </button>
+        </div>
+      </form>
+
+      </div><!-- /max-w-4xl -->
+    </main>
+  </div>
+
+  <script>
+    // Update live summary counts when status changes
+    function updateSummary() {
+      const counts = { Present: 0, Late: 0, Absent: 0, none: 0 };
+      document.querySelectorAll('.status-radio').forEach(radio => {
+        if (radio.checked) counts[radio.value]++;
+      });
+      // Count unchecked students
+      const totalStudents = <%= students.length %>;
+      const checked = counts.Present + counts.Late + counts.Absent;
+      counts.none = totalStudents - checked;
+
+      // Update badges
+      const el = {
+        Present: document.getElementById('summary-present'),
+        Late:    document.getElementById('summary-late'),
+        Absent:  document.getElementById('summary-absent'),
+        none:    document.getElementById('summary-none'),
+      };
+      if (el.Present) el.Present.textContent = 'มา ' + counts.Present;
+      if (el.Late)    el.Late.textContent    = 'สาย ' + counts.Late;
+      if (el.Absent)  el.Absent.textContent  = 'ขาด ' + counts.Absent;
+      if (el.none)    el.none.textContent    = 'ยังไม่ระบุ ' + counts.none;
+    }
+
+    function handleToggle(studentId, status) {
+      // Small delay to let the radio actually check, then update summary
+      setTimeout(updateSummary, 10);
+    }
+
+    function markAll(status) {
+      document.querySelectorAll('.status-radio').forEach(radio => {
+        if (radio.value === status) radio.checked = true;
+      });
+      updateSummary();
+    }
+
+    // Init summary on page load
+    document.addEventListener('DOMContentLoaded', updateSummary);
+  </script>
+
+</body>
+</html>
