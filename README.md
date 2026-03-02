@@ -86,17 +86,6 @@ node app.js
 
 ---
 
-## บัญชีผู้ใช้เริ่มต้น
-
-บัญชีเหล่านี้ถูกสร้างโดย `db/seed.js` — ใช้สำหรับทดสอบระบบ
-
-| Role | Username | Password | Portal |
-|---|---|---|---|
-| Admin | `admin` | `123456` | `/dashboard` |
-| Teacher | `teacher1` | `123456` | `/teacher/dashboard` |
-| Student | `student1` | `123456` | `/student/dashboard` |
-
-> ครูตัวอย่าง: **สมชาย ใจดี** · นักเรียนตัวอย่าง: **มาลี รักเรียน**
 
 ---
 
